@@ -28,11 +28,30 @@ async function StudyList() {
     data: { session },
   } = await supabase.auth.getSession();
 
-  const { data: userData } = await supabase
+  let { data: userData } = await supabase
     .from('users')
     .select('role')
     .eq('id', session!.user.id)
     .single();
+
+  // Fallback: create user profile if it doesn't exist
+  if (!userData && session) {
+    const metadata = session.user.user_metadata;
+    await supabase.from('users').insert({
+      id: session.user.id,
+      email: session.user.email!,
+      name: metadata.name || session.user.email!.split('@')[0],
+      role: metadata.role || 'coordinator',
+    });
+
+    // Re-fetch
+    const result = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', session!.user.id)
+      .single();
+    userData = result.data;
+  }
 
   // T047, T048: Fetch studies with aggregated counts (RLS handles access control)
   const { data: studies } = await supabase
@@ -78,11 +97,33 @@ export default async function DashboardPage() {
     data: { session },
   } = await supabase.auth.getSession();
 
-  const { data: userData } = await supabase
+  // Try to get user profile
+  let { data: userData } = await supabase
     .from('users')
     .select('role')
     .eq('id', session!.user.id)
     .single();
+
+  // If user profile doesn't exist, create it (fallback)
+  if (!userData && session) {
+    const metadata = session.user.user_metadata;
+    const { error } = await supabase.from('users').insert({
+      id: session.user.id,
+      email: session.user.email!,
+      name: metadata.name || session.user.email!.split('@')[0],
+      role: metadata.role || 'coordinator',
+    });
+
+    if (!error) {
+      // Re-fetch user data
+      const result = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+      userData = result.data;
+    }
+  }
 
   const showUploadButton = userData?.role === 'pi' || userData?.role === 'admin';
 
