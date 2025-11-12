@@ -1,10 +1,17 @@
-export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-6">
-      <h1 className="text-3xl font-bold">Protocol Extractor</h1>
-      <p className="mt-4 text-base text-gray-600">
-        Setup complete. Implementation in progress...
-      </p>
-    </main>
-  );
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
+
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  // If user is authenticated, redirect to dashboard
+  if (session) {
+    redirect('/dashboard');
+  }
+
+  // If not authenticated, redirect to login
+  redirect('/login');
 }
