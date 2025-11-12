@@ -4,14 +4,15 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createClient();
     const { data, error } = await supabase
       .from('study_members')
       .select('*, user:users(*)')
-      .eq('study_id', params.id);
+      .eq('study_id', id);
 
     if (error) throw error;
 
@@ -23,9 +24,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createClient();
     const body = await request.json();
     const { email, role } = body;
@@ -47,7 +49,7 @@ export async function POST(
     // Add team member
     const { data, error } = await supabase
       .from('study_members')
-      .insert({ study_id: params.id, user_id: user.id, role })
+      .insert({ study_id: id, user_id: user.id, role })
       .select('*, user:users(*)')
       .single();
 

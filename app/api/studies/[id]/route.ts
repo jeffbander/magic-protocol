@@ -4,9 +4,10 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createClient();
     const {
       data: { session },
@@ -23,7 +24,7 @@ export async function GET(
     const { data: study, error } = await supabase
       .from('studies')
       .select('*, owner:users!owner_id(*)')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (error || !study) {
@@ -45,9 +46,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createClient();
     const {
       data: { session },
@@ -64,7 +66,7 @@ export async function PATCH(
     const { data: study } = await supabase
       .from('studies')
       .select('owner_id')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (!study) {
@@ -120,7 +122,7 @@ export async function PATCH(
         ...(target_enrollment !== undefined && { target_enrollment }),
         ...(protocol_data !== undefined && { protocol_data }),
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single();
 

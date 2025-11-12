@@ -4,23 +4,24 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createClient();
 
     // Get study for target enrollment
     const { data: study } = await supabase
       .from('studies')
       .select('target_enrollment')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     // Get patients
     const { data: patients, error } = await supabase
       .from('patients')
       .select('*')
-      .eq('study_id', params.id)
+      .eq('study_id', id)
       .order('enrolled_date', { ascending: false });
 
     if (error) throw error;
@@ -37,9 +38,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createClient();
     const body = await request.json();
     const { name, enrolled_date } = body;
@@ -61,7 +63,7 @@ export async function POST(
     // Add patient
     const { data, error } = await supabase
       .from('patients')
-      .insert({ study_id: params.id, name: name.trim(), enrolled_date })
+      .insert({ study_id: id, name: name.trim(), enrolled_date })
       .select()
       .single();
 
