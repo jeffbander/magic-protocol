@@ -31,26 +31,23 @@ AI-powered clinical trial protocol extraction and study management platform.
 1. Clone the repository:
 ```bash
 git clone https://github.com/jeffbander/magic-protocol.git
-cd magicprotocol
+cd magic-protocol
 ```
 
-2. Install dependencies:
+2. Run the setup script (installs dependencies and creates `.env.local`):
 ```bash
-npm install
+./setup.sh
 ```
 
-3. Set up environment variables:
-```bash
-cp .env.local.example .env.local
-```
-
-Edit `.env.local` with your credentials:
+3. Fill in your credentials in `.env.local`:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ANTHROPIC_API_KEY=your-anthropic-key
 ```
+
+> See [SETUP.md](SETUP.md) for step-by-step instructions to get these values.
 
 4. Run the database migration:
    - Go to your Supabase dashboard → SQL Editor

@@ -32,6 +32,8 @@ if (fs.existsSync(envPath)) {
 
   const missingVars = [];
   const emptyVars = [];
+  const placeholderVars = [];
+  const PLACEHOLDER_PATTERNS = ['your-', 'your_', 'xxx', 'placeholder', 'changeme', 'example'];
 
   requiredVars.forEach(varName => {
     if (!envContent.includes(varName)) {
@@ -41,14 +43,20 @@ if (fs.existsSync(envPath)) {
       const match = envContent.match(new RegExp(`${varName}=(.+)`));
       if (!match || !match[1] || match[1].trim() === '') {
         emptyVars.push(varName);
+      } else {
+        const value = match[1].trim().toLowerCase();
+        if (PLACEHOLDER_PATTERNS.some(p => value.includes(p))) {
+          placeholderVars.push(varName);
+        }
       }
     }
   });
 
   if (missingVars.length > 0) {
     checks.failed.push(`❌ Missing environment variables: ${missingVars.join(', ')}`);
-  } else if (emptyVars.length > 0) {
-    checks.warnings.push(`⚠️  Empty environment variables: ${emptyVars.join(', ')}`);
+  } else if (emptyVars.length > 0 || placeholderVars.length > 0) {
+    const unfilled = [...emptyVars, ...placeholderVars];
+    checks.warnings.push(`⚠️  Environment variables need real values: ${unfilled.join(', ')}`);
   } else {
     checks.passed.push('✅ All environment variables configured');
   }
